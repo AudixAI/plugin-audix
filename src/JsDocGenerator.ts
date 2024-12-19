@@ -13,45 +13,40 @@ export class JsDocGenerator {
         return formattedComment;
     }
 
+    public async generateClassComment(
+        queueItem: ASTQueueItem,
+        methodComments: Record<string, string>
+    ): Promise<string> {
+        const prompt = this.buildClassPrompt(queueItem, methodComments);
+        const comment = await this.aiService.generateComment(prompt);
+        const formattedComment = this.formatComment(comment);
+        return formattedComment;
+    }
+
     private buildPrompt(queueItem: ASTQueueItem): string {
-        let prompt = '';
+        return `Generate JSDoc comment for the following code:
 
-        if (queueItem.nodeType === 'FunctionDeclaration' || queueItem.nodeType === 'MethodDefinition') {
-            prompt += `Generate JSDoc comment for the following ${queueItem.nodeType}:\n`;
-            prompt += `${queueItem.nodeType} name: ${queueItem.functionName}\n`;
-            prompt += `Parameters: ${queueItem.parameters?.join(', ') || ''}\n`;
-            prompt += `Returns: ${queueItem.returnType || 'void'}\n`;
-        } else if (queueItem.nodeType === 'ClassDeclaration') {
-            prompt += `Generate JSDoc comment for the following ${queueItem.nodeType}:\n`;
-            prompt += `${queueItem.nodeType} name: ${queueItem.className}\n`;
-        }
-
-        return prompt;
+        \`\`\`typescript
+        ${queueItem.code}
+        \`\`\`
+        `;
     }
 
-    public getReturnType(node: TSESTree.FunctionDeclaration): string {
-        const returnType = node.returnType;
-        if (returnType && returnType.typeAnnotation) {
-            return this.getTypeAnnotationString(returnType.typeAnnotation);
-        }
-        return 'void';
-    }
+    private buildClassPrompt(
+        queueItem: ASTQueueItem,
+        methodComments: Record<string, string>
+    ): string {
+        const methodCommentsString = Object.entries(methodComments)
+            .map(([methodName, comment]) => `@method ${methodName}\n${comment}`)
+            .join('\n');
 
-    private getTypeAnnotationString(typeAnnotation: TSESTree.TypeNode): string {
-        switch (typeAnnotation.type) {
-            case 'TSAnyKeyword':
-                return 'any';
-            case 'TSBooleanKeyword':
-                return 'boolean';
-            case 'TSNumberKeyword':
-                return 'number';
-            case 'TSStringKeyword':
-                return 'string';
-            case 'TSVoidKeyword':
-                return 'void';
-            default:
-                return 'unknown';
-        }
+        return `Generate JSDoc comment for the following class:
+
+        Class name: ${queueItem.code.match(/class (\w+)/)?.[1]}
+
+        Methods:
+        ${methodCommentsString}
+        `;
     }
 
     private formatComment(comment: string): string {

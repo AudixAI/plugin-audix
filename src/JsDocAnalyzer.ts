@@ -1,4 +1,5 @@
 import type { TSESTree } from '@typescript-eslint/types';
+import { TypeScriptParser } from './TypeScriptParser';
 
 interface Location {
     start: number;
@@ -9,13 +10,22 @@ export class JsDocAnalyzer {
 
     public missingJsDocNodes: TSESTree.Node[] = [];
 
+    constructor(
+        public typeScriptParser: TypeScriptParser,
+    ) { }
+
+
+
     public analyze(ast: TSESTree.Program): void {
         this.traverse(ast, ast.comments || []);
     }
 
     private traverse(node: TSESTree.Node, comments?: TSESTree.Comment[]): void {
-        if (this.isMissingJsDoc(node, comments || [])) {
-            this.missingJsDocNodes.push(node);
+        if (this.shouldHaveJSDoc(node)) {
+            const jsDocComment = this.getJSDocComment(node, comments || []);
+            if (!jsDocComment) {
+                this.missingJsDocNodes.push(node);
+            }
         }
 
         // Handle specific node types that can have children
@@ -36,29 +46,34 @@ export class JsDocAnalyzer {
         });
     }
 
-    public isMissingJsDoc(node: TSESTree.Node, comments: any[]): boolean {
-        if (
+    /**
+     * Checks if a node should have JSDoc documentation
+     */
+    public shouldHaveJSDoc(node: TSESTree.Node): boolean {
+        return (
             node.type === 'FunctionDeclaration' ||
             node.type === 'ClassDeclaration' ||
             node.type === 'MethodDefinition'
-        ) {
-            const functionStartLine = node.loc?.start.line;
-            const functionEndLine = node.loc?.end.line;
+        );
+    }
 
-            const jsDocComment = comments.find((comment) => {
-                const commentEndLine = comment.loc?.end.line;
-                return (
-                    comment.type === 'Block' &&
-                    comment.value.startsWith('*') &&
-                    commentEndLine === functionStartLine - 1
-                );
-            });
-
-            console.log(jsDocComment + ' ' + functionStartLine + ' ' + functionEndLine);
-
-            return !jsDocComment;
+    /**
+     * Gets the JSDoc comment for a node if it exists
+     */
+    public getJSDocComment(node: TSESTree.Node, comments: TSESTree.Comment[]): string | undefined {
+        if (!this.shouldHaveJSDoc(node)) {
+            return undefined;
         }
-        return false;
+
+        const functionStartLine = node.loc?.start.line;
+        return comments.find((comment) => {
+            const commentEndLine = comment.loc?.end.line;
+            return (
+                comment.type === 'Block' &&
+                comment.value.startsWith('*') &&
+                commentEndLine === functionStartLine - 1
+            );
+        })?.value;
     }
 
     public getNodeLocation(node: TSESTree.Node): Location {
@@ -66,5 +81,30 @@ export class JsDocAnalyzer {
             start: node.loc.start.line,
             end: node.loc.end.line,
         };
+    }
+
+    public getClassMethods(filePath: string, className?: string): TSESTree.MethodDefinition[] {
+        const ast = this.typeScriptParser.parse(filePath);
+        if (!ast) return [];
+
+        // Find all class declarations in the file
+        const classNodes = ast.body.filter(
+            (node: TSESTree.Node): node is TSESTree.ClassDeclaration =>
+                node.type === 'ClassDeclaration' &&
+                // If className is provided, match it, otherwise accept any class
+                (className ? node.id?.name === className : true)
+        );
+
+        // Collect methods from all matching classes
+        const methods: TSESTree.MethodDefinition[] = [];
+        for (const classNode of classNodes) {
+            const classMethods = classNode.body.body.filter(
+                (node: TSESTree.Node): node is TSESTree.MethodDefinition =>
+                    node.type === 'MethodDefinition'
+            );
+            methods.push(...classMethods);
+        }
+
+        return methods;
     }
 }
