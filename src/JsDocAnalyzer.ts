@@ -6,12 +6,11 @@ interface Location {
 }
 
 export class JsDocAnalyzer {
-    constructor(public ast: TSESTree.Program) { }
 
     public missingJsDocNodes: TSESTree.Node[] = [];
 
-    public analyze(): void {
-        this.traverse(this.ast, this.ast.comments || []);
+    public analyze(ast: TSESTree.Program): void {
+        this.traverse(ast, ast.comments || []);
     }
 
     private traverse(node: TSESTree.Node, comments?: TSESTree.Comment[]): void {

@@ -33,7 +33,6 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
     return x.toUpperCase();
 }
 
-// simple class for testing
 class SimpleClass {
     /**
      * Simple constructor for testing
