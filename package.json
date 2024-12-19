@@ -8,5 +8,14 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "dependencies": {
+        "@types/node": "^22.10.2"
+    },
+    "devDependencies": {
+        "@typescript-eslint/parser": "^8.18.1",
+        "@typescript-eslint/types": "^8.18.1",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.7.2"
+    }
 }

@@ -1,11 +1,14 @@
-class TypeScriptFileIdentifier {
+import * as fs from 'fs';
+import * as path from 'path';
+
+export class TypeScriptFileIdentifier {
     public isTypeScriptFile(file: string): boolean {
-        return file.endsWith('.ts') || file.endsWith('.tsx');
-        // Check if the file has a .ts or .tsx extension
+        const extension = path.extname(file);
+        return extension === '.ts' || extension === '.tsx';
     }
 
     public getTypeScriptFiles(directory: string): string[] {
-        // Get all TypeScript files in the specified directory
-        return [];
+        const files = fs.readdirSync(directory);
+        return files.filter((file) => this.isTypeScriptFile(file));
     }
 }
