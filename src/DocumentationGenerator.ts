@@ -13,7 +13,7 @@ import { AIService } from './AIService.js';
 
 /**
  * Class representing a Documentation Generator.
- */
+ *
  */
 export class DocumentationGenerator {
     public missingJsDocQueue: ASTQueueItem[] = [];
@@ -23,17 +23,17 @@ export class DocumentationGenerator {
     private branchName: string = '';
     private fileOffsets: Map<string, number> = new Map();
 
-/**
- * Constructor for initializing the object with necessary dependencies.
- *
- * @param {DirectoryTraversal} directoryTraversal - Instance of DirectoryTraversal class.
- * @param {TypeScriptParser} typeScriptParser - Instance of TypeScriptParser class.
- * @param {JsDocAnalyzer} jsDocAnalyzer - Instance of JsDocAnalyzer class.
- * @param {JsDocGenerator} jsDocGenerator - Instance of JsDocGenerator class.
- * @param {GitManager} gitManager - Instance of GitManager class.
- * @param {Configuration} configuration - Instance of Configuration class.
- * @param {AIService} aiService - Instance of AIService class.
- */
+    /**
+     * Constructor for initializing the object with necessary dependencies.
+     *
+     * @param {DirectoryTraversal} directoryTraversal - Instance of DirectoryTraversal class.
+     * @param {TypeScriptParser} typeScriptParser - Instance of TypeScriptParser class.
+     * @param {JsDocAnalyzer} jsDocAnalyzer - Instance of JsDocAnalyzer class.
+     * @param {JsDocGenerator} jsDocGenerator - Instance of JsDocGenerator class.
+     * @param {GitManager} gitManager - Instance of GitManager class.
+     * @param {Configuration} configuration - Instance of Configuration class.
+     * @param {AIService} aiService - Instance of AIService class.
+     */
 
     constructor(
         public directoryTraversal: DirectoryTraversal,
@@ -45,13 +45,12 @@ export class DocumentationGenerator {
         public aiService: AIService
     ) { }
 
-/**
- * Asynchronously generates JSDoc comments for the TypeScript files based on the given pull request number or full mode.
- * 
- * @param pullNumber - Optional. The pull request number to generate JSDoc comments for.
- * @returns A promise that resolves once the JSDoc generation process is completed.
- */ 
- * /
+    /**
+     * Asynchronously generates JSDoc comments for the TypeScript files based on the given pull request number or full mode.
+     * 
+     * @param pullNumber - Optional. The pull request number to generate JSDoc comments for.
+     * @returns A promise that resolves once the JSDoc generation process is completed.
+     */
     public async generate(pullNumber?: number): Promise<void> {
         let fileChanges: PrModeFileChange[] | FullModeFileChange[] = [];
         this.fileOffsets.clear();
@@ -212,13 +211,13 @@ export class DocumentationGenerator {
         }
     }
 
-/**
- * Updates a file with JSDoc at a specific position.
- * @param {string} filePath - The path to the file to update.
- * @param {string} jsDoc - The JSDoc to insert into the file.
- * @param {number} insertLine - The line number where the JSDoc should be inserted.
- * @returns {Promise<void>} - A Promise that resolves once the file has been updated.
- */
+    /**
+     * Updates a file with JSDoc at a specific position.
+     * @param {string} filePath - The path to the file to update.
+     * @param {string} jsDoc - The JSDoc to insert into the file.
+     * @param {number} insertLine - The line number where the JSDoc should be inserted.
+     * @returns {Promise<void>} - A Promise that resolves once the file has been updated.
+     */
     private async updateFileWithJSDoc(filePath: string, jsDoc: string, insertLine: number): Promise<void> {
         const content = this.fileContents.get(filePath) || '';
         const lines = content.split('\n');
@@ -231,13 +230,13 @@ export class DocumentationGenerator {
         this.fileContents.set(filePath, lines.join('\n'));
     }
 
-/**
- * Retrieves the code of a specific node from a given file.
- *
- * @param {string} filePath - The path to the file containing the node.
- * @param {TSESTree.Node} node - The node to extract the code from.
- * @returns {string} The code belonging to the specified node.
- */
+    /**
+     * Retrieves the code of a specific node from a given file.
+     *
+     * @param {string} filePath - The path to the file containing the node.
+     * @param {TSESTree.Node} node - The node to extract the code from.
+     * @returns {string} The code belonging to the specified node.
+     */
     public getNodeCode(filePath: string, node: TSESTree.Node): string {
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const lines = fileContent.split('\n');
@@ -246,23 +245,23 @@ export class DocumentationGenerator {
         return lines.slice(startLine - 1, endLine).join('\n');
     }
 
-/**
- * Retrieves the content of a file from the provided URL.
- * 
- * @param {string} contentsUrl - The URL of the file contents
- * @returns {Promise<string>} The content of the file as a string
- */
+    /**
+     * Retrieves the content of a file from the provided URL.
+     * 
+     * @param {string} contentsUrl - The URL of the file contents
+     * @returns {Promise<string>} The content of the file as a string
+     */
     private async getFileContent(contentsUrl: string): Promise<string> {
         const response = await fetch(contentsUrl);
         const data = await response.json();
         return Buffer.from(data.content, 'base64').toString('utf-8');
     }
 
-/**
- * Asynchronously generates a pull request title and description for adding JSDoc documentation.
- * @param {number} [pullNumber] - Optional pull request number that the JSDoc documentation is related to.
- * @returns {Promise<{ title: string; body: string }>} - A promise that resolves to an object with a title and body for the pull request.
- */
+    /**
+     * Asynchronously generates a pull request title and description for adding JSDoc documentation.
+     * @param {number} [pullNumber] - Optional pull request number that the JSDoc documentation is related to.
+     * @returns {Promise<{ title: string; body: string }>} - A promise that resolves to an object with a title and body for the pull request.
+     */
     private async generatePRContent(pullNumber?: number): Promise<{ title: string; body: string }> {
         const modifiedFiles = Array.from(this.fileContents.keys());
         const filesContext = modifiedFiles.map(file => `- ${file}`).join('\n');
@@ -297,11 +296,11 @@ export class DocumentationGenerator {
         }
     }
 
-/**
- * Generates the default pull request body for adding JSDoc documentation to TypeScript files.
- * 
- * @returns {string} The default pull request body containing information about the changes made.
- */
+    /**
+     * Generates the default pull request body for adding JSDoc documentation to TypeScript files.
+     * 
+     * @returns {string} The default pull request body containing information about the changes made.
+     */
     private generateDefaultPRBody(): string {
         const changes = Array.from(this.fileContents.keys())
             .map(filePath => `- Added JSDoc documentation to \`${filePath}\``)
