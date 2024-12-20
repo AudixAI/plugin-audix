@@ -1,5 +1,5 @@
 import type { TSESTree } from '@typescript-eslint/types';
-import { TypeScriptParser } from './TypeScriptParser';
+import { TypeScriptParser } from './TypeScriptParser.js';
 
 interface Location {
     start: number;

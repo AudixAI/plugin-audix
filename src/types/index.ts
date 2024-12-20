@@ -8,3 +8,9 @@ export interface ASTQueueItem {
     methodName?: string;
     jsDoc?: string;
 }
+
+export interface Repository {
+    owner: string;
+    name: string;
+    pullNumber?: number;
+}

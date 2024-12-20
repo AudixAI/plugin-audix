@@ -1,10 +1,11 @@
-import { DirectoryTraversal } from './DirectoryTraversal';
-import { TypeScriptFileIdentifier } from './TypeScriptFileIdentifier';
-import { TypeScriptParser } from './TypeScriptParser';
-import { JsDocAnalyzer } from './JsDocAnalyzer';
-import { JsDocGenerator } from './JsDocGenerator';
+import { DirectoryTraversal } from './DirectoryTraversal.js';
+import { TypeScriptFileIdentifier } from './TypeScriptFileIdentifier.js';
+import { TypeScriptParser } from './TypeScriptParser.js';
+import { JsDocAnalyzer } from './JsDocAnalyzer.js';
+import { JsDocGenerator } from './JsDocGenerator.js';
 import type { TSESTree } from '@typescript-eslint/types';
-import { ASTQueueItem } from './types';
+import { ASTQueueItem } from './types/index.js';
+import { GitManager } from './GitManager.js';
 import fs from 'fs';
 export class DocumentationGenerator {
     public missingJsDocQueue: ASTQueueItem[] = [];
@@ -17,14 +18,24 @@ export class DocumentationGenerator {
         public typeScriptParser: TypeScriptParser,
         public jsDocAnalyzer: JsDocAnalyzer,
         public jsDocGenerator: JsDocGenerator,
-        // public gitManager: GitManager,
+        public gitManager: GitManager,
         // public githubActionsWorkflow: GithubActionsWorkflow,
         // public configuration: Configuration
     ) { }
 
-    public async generate(): Promise<void> {
-        // Traverse the directory and get TypeScript files
-        const typeScriptFiles = this.directoryTraversal.traverse();
+    public async generate(pullNumber?: number): Promise<void> {
+        let typeScriptFiles: string[];
+        // If in PR mode, only process files from the PR
+        if (pullNumber) {
+            // PR mode: get files from the PR
+            const prFiles = await this.gitManager.getFilesInPullRequest(pullNumber);
+            console.log('prFiles', prFiles);
+            this.directoryTraversal.prFiles = prFiles;
+            typeScriptFiles = this.directoryTraversal.traverse();
+        } else {
+            // Normal mode: process all TypeScript files in the root directory, besides excluded files
+            typeScriptFiles = this.directoryTraversal.traverse();
+        }
 
         // Process each TypeScript file
         for (const file of typeScriptFiles) {
