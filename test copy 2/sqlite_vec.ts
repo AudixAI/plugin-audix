@@ -1,4 +1,11 @@
 
+/**
+ * A function that takes a number or a string as input and performs different operations based on the data type.
+ * If the input is a number, it will multiply the number by 2.
+ * If the input is a string, it will convert the string to uppercase.
+ * @param {number | string} x - The input number or string to be processed
+ * @return {number | string} The result of the operation based on the input data type
+ */
 function has_jsdoc(x: number | string): number | string {
     if (typeof x === 'number') {
         return x * 2;
@@ -35,14 +42,34 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 }
 
 
+/**
+ * This is a simple class that serves as an example.
+ */
+```
 class SimpleClass {
 
+/**
+ * Constructor for creating an instance with a given value for x.
+ * @param {number} x - The value of x for the instance
+ */
     constructor(public x: number) { }
 
+/**
+ * Takes a number and doubles it.
+ * 
+ * @param {number} x - The number to be multiplied by 2.
+ * @returns {number} The result of multiplying the input number by 2.
+ */
     simpleMethod(x: number): number {
         return x * 2;
     }
 
+/**
+ * Converts a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The number converted to a string.
+ */
     simpleMethod2(x: number): string {
         return x.toString();
     }

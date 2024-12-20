@@ -14,7 +14,7 @@
     "repository": {
         "owner": "AudixAI",
         "name": "plugin-audix",
-        "pullNumber": 30
+        "pullNumber": 33
     },
     "branch": "main",
     "committedFiles": [],
