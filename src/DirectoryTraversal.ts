@@ -1,7 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * DirectoryTraversal class for traversing through directories and files.
+ * @class DirectoryTraversal
+ */
 export class DirectoryTraversal {
+/**
+ * Constructor for a class that represents a directory structure.
+ * 
+ * @param {string} rootDirectory - The root directory of the structure.
+ * @param {string[]} [excludedDirectories=[]] - Directories to be excluded from the structure.
+ * @param {string[]} [excludedFiles=[]] - Files to be excluded from the structure.
+ * @param {string[]} [prFiles=[]] - PR files related to the structure.
+ */
     constructor(
         public rootDirectory: string,
         public excludedDirectories: string[] = [],
@@ -9,6 +21,13 @@ export class DirectoryTraversal {
         public prFiles: string[] = []
     ) { }
 
+/**
+ * Traverses the directory based on PRFiles or all files in the root directory.
+ * If PRFiles are detected, processes only files from the PR.
+ * Otherwise, scans all files in the root directory for TypeScript files.
+ * 
+ * @returns An array of string containing the files to process.
+ */
     public traverse(): string[] {
         if (this.prFiles.length > 0) {
             console.log('Detected PR Files: ', this.prFiles);
@@ -57,6 +76,11 @@ export class DirectoryTraversal {
         }
     }
 
+/**
+ * Check if a file path is excluded based on the list of excluded directories and files.
+ * @param {string} filePath - The path of the file to be checked.
+ * @returns {boolean} - True if the file path is excluded, otherwise false.
+ */
     public isExcluded(filePath: string): boolean {
         return (
             this.excludedDirectories.includes(path.dirname(filePath)) ||
