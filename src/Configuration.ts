@@ -14,7 +14,7 @@ interface ConfigurationData {
     excludedFiles: string[];
     commitMessageTemplate: string;
     pullRequestTemplate: string;
-    rootDirectory: string;
+    targetDirectory: string;
     excludedDirectories: string[];
     repository: Repository;
     branch: string;
@@ -38,7 +38,7 @@ export class Configuration {
     public excludedFiles: string[] = [];
     public commitMessageTemplate: string = '';
     public pullRequestTemplate: string = '';
-    public rootDirectory: string = '';
+    public targetDirectory: string = '';
     public excludedDirectories: string[] = [];
     public repository: Repository = {
         owner: '',
@@ -73,7 +73,7 @@ export class Configuration {
             this.excludedFiles = parsedConfig.excludedFiles;
             this.commitMessageTemplate = parsedConfig.commitMessageTemplate;
             this.pullRequestTemplate = parsedConfig.pullRequestTemplate;
-            this.rootDirectory = parsedConfig.rootDirectory;
+            this.targetDirectory = parsedConfig.targetDirectory;
             this.excludedDirectories = parsedConfig.excludedDirectories;
             this.repository = parsedConfig.repository;
             this.branch = parsedConfig.branch;
@@ -101,7 +101,7 @@ export class Configuration {
             excludedFiles: this.excludedFiles,
             commitMessageTemplate: this.commitMessageTemplate,
             pullRequestTemplate: this.pullRequestTemplate,
-            rootDirectory: this.rootDirectory,
+            targetDirectory: this.targetDirectory,
             excludedDirectories: this.excludedDirectories,
             repository: this.repository,
             branch: this.branch,

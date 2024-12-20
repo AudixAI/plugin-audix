@@ -38,7 +38,7 @@ async function main() {
         }
 
         const directoryTraversal = new DirectoryTraversal(
-            configuration.rootDirectory,
+            configuration.targetDirectory,
             configuration.excludedDirectories,
             configuration.excludedFiles,
             prFiles

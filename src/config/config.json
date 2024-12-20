@@ -4,13 +4,13 @@
     "excludedFiles": [],
     "commitMessageTemplate": "",
     "pullRequestTemplate": "",
-    "rootDirectory": "./src",
+    "targetDirectory": "./src",
     "excludedDirectories": [
         "node_modules"
     ],
     "repository": {
         "owner": "AudixAI",
-        "name": "plugin-audix",
+        "name": "eliza",
         "pullNumber": null
     },
     "branch": "main",

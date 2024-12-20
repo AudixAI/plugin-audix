@@ -59,7 +59,7 @@ export class DocumentationGenerator {
             const prFiles = await this.gitManager.getFilesInPullRequest(pullNumber);
             fileChanges = prFiles.filter(file => {
                 const normalizedPath = path.normalize(file.filename);
-                const rootDir = this.configuration.rootDirectory;
+                const rootDir = this.configuration.targetDirectory;
                 const isInRootDir = rootDir === './' || rootDir === '.' || normalizedPath.startsWith(rootDir);
 
                 const isExcluded = this.configuration.excludedDirectories.some(dir => {

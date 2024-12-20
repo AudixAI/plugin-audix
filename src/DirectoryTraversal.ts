@@ -9,13 +9,13 @@ export class DirectoryTraversal {
     /**
      * Constructor for a class that represents a directory structure.
      * 
-     * @param {string} rootDirectory - The root directory of the structure.
+     * @param {string} targetDirectory - The root directory of the structure.
      * @param {string[]} [excludedDirectories=[]] - Directories to be excluded from the structure.
      * @param {string[]} [excludedFiles=[]] - Files to be excluded from the structure.
      * @param {string[]} [prFiles=[]] - PR files related to the structure.
      */
     constructor(
-        public rootDirectory: string,
+        public targetDirectory: string,
         public excludedDirectories: string[] = [],
         public excludedFiles: string[] = [],
         public prFiles: string[] = []
@@ -34,7 +34,7 @@ export class DirectoryTraversal {
             // PR mode: only process files from the PR
             const files = this.prFiles
                 .filter((file) => {
-                    const filePath = path.join(this.rootDirectory, file);
+                    const filePath = path.join(this.targetDirectory, file);
                     return (
                         // only process files that exist in the config root directory
                         fs.existsSync(filePath) &&
@@ -44,7 +44,7 @@ export class DirectoryTraversal {
                         (path.extname(file) === '.ts' || path.extname(file) === '.tsx')
                     );
                 })
-                .map((file) => path.join(this.rootDirectory, file));
+                .map((file) => path.join(this.targetDirectory, file));
 
             console.log('Files to process: ', files);
             return files;
@@ -71,7 +71,7 @@ export class DirectoryTraversal {
                 });
             };
 
-            traverseDirectory(this.rootDirectory);
+            traverseDirectory(this.targetDirectory);
             return typeScriptFiles;
         }
     }

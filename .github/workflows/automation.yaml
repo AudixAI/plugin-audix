@@ -5,11 +5,11 @@ on:
     inputs:
       pull_number:
         description: 'Pull Request Number'
+        required: false
+      target_directory:
+        description: 'Target Directory'
         required: true
-      root_directory:
-        description: 'Root Directory'
-        required: true
-        default: './'
+        default: '/packages/core/src'
       excluded_directories:
         description: 'Excluded Directories (comma-separated)'
         required: true
@@ -55,11 +55,11 @@ jobs:
           
           # Update config.json using jq
           jq --arg pn "${{ github.event.inputs.pull_number }}" \
-             --arg rd "${{ github.event.inputs.root_directory }}" \
+             --arg rd "${{ github.event.inputs.target_directory }}" \
              --argjson ed "${EXCLUDED_DIRS_JSON}" \
              --argjson pr "${REVIEWERS_JSON}" \
              '.repository.pullNumber = ($pn | tonumber) |
-              .rootDirectory = $rd |
+              .targetDirectory = $rd |
               .excludedDirectories = $ed |
               .pullRequestReviewers = $pr' \
              src/config/config.json > temp.json && mv temp.json src/config/config.json
