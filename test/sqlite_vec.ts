@@ -14,6 +14,13 @@ function has_jsdoc(x: number | string): number | string {
 }
 
 
+/**
+ * Takes a number or string as input and doubles the number if it is a number
+ * or converts the string to uppercase if it is a string.
+ * 
+ * @param {number | string} x - The input number or string
+ * @returns {number | string} - The doubled number or the uppercase string
+ */
 function does_not_have_jsdoc(x: number | string): number | string {
     if (typeof x === 'number') {
         return x * 2;
@@ -36,6 +43,9 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 }
 
 
+/**
+ * This is a simple class that serves as an example.
+ */
 class SimpleClass {
 
     /**
@@ -64,6 +74,12 @@ class SimpleClass {
         return x.toString();
     }
 
+/**
+ * Convert a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The string representation of the input number.
+ */
     simpleMethod3(x: number): string {
         return x.toString();
     }
