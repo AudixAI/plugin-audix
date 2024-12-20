@@ -1,7 +1,5 @@
-// src/JsDocGenerator.ts
-import type { TSESTree } from '@typescript-eslint/types';
-import { AIService } from './AIService';
-import { ASTQueueItem } from './types';
+import { AIService } from './AIService.js';
+import { ASTQueueItem } from './types/index.js';
 
 export class JsDocGenerator {
     constructor(public aiService: AIService) { }

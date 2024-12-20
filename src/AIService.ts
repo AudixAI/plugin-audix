@@ -1,12 +1,30 @@
-export class AIService {
-    constructor(public apiKey: string) { }
+import { ChatOpenAI } from "@langchain/openai";
+import dotenv from 'dotenv';
 
-    public generateComment(prompt: string): string {
-        return prompt;
-        // Call the AI service API to generate a JSDoc comment based on the prompt
+dotenv.config();
+
+export class AIService {
+    private chatModel: ChatOpenAI;
+
+    constructor() {
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OPENAI_API_KEY is not set');
+        }
+        this.chatModel = new ChatOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    }
+
+    public async generateComment(prompt: string): Promise<string> {
+        try {
+            const response = await this.chatModel.invoke(prompt);
+            return response.content as string;
+        } catch (error) {
+            this.handleAPIError(error as Error);
+            return '';
+        }
     }
 
     public handleAPIError(error: Error): void {
-        // Handle any errors that occur during API calls
+        console.error('API Error:', error.message);
+        throw error;
     }
 }
