@@ -6,11 +6,9 @@ import { DocumentationGenerator } from './DocumentationGenerator.js';
 import { Configuration } from './Configuration.js';
 import { AIService } from './AIService.js';
 import { GitManager } from './GitManager.js';
-// import { GithubActionsWorkflow } from './GithubActionsWorkflow';
 
 async function main() {
     try {
-        // Load configuration
         const configuration = new Configuration();
         configuration.load();
 
@@ -26,7 +24,6 @@ async function main() {
             prFiles = files.map((file) => file.filename);
         }
 
-        // Create instances of the required components
         const directoryTraversal = new DirectoryTraversal(
             configuration.rootDirectory,
             configuration.excludedDirectories,
@@ -51,40 +48,6 @@ async function main() {
         // Generate documentation
         await documentationGenerator.generate(configuration.repository.pullNumber);
 
-        // // Run tests
-        // documentationGenerator.runTests();
-
-        // // Validate generated documentation
-        // documentationGenerator.validate();
-
-        // // Create a new branch and commit changes
-        // const gitManager = new GitManager(
-        //     configuration.repository,
-        //     configuration.branch
-        // );
-        // gitManager.createBranch();
-        // gitManager.commit(
-        //     configuration.committedFiles,
-        //     configuration.commitMessage
-        // );
-
-        // // Create a pull request
-        // gitManager.createPullRequest(
-        //     configuration.pullRequestTitle,
-        //     configuration.pullRequestDescription,
-        //     configuration.pullRequestLabels,
-        //     configuration.pullRequestReviewers
-        // );
-
-        // // Create and run the GitHub Actions workflow
-        // const githubActionsWorkflow = new GithubActionsWorkflow(
-        //     configuration.workflowTriggers,
-        //     configuration.workflowSteps
-        // );
-        // githubActionsWorkflow.run();
-
-        // // Communicate the availability and usage instructions
-        // documentationGenerator.communicate();
     } catch (error) {
         console.error('An error occurred during the documentation generation process:', error);
         process.exit(1);

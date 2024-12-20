@@ -63,6 +63,7 @@ export class DocumentationGenerator {
             if (fileChange.status === 'deleted') continue;
 
             const filePath = path.join(fileChange.filename);
+            console.log(`Processing file: ${filePath}`, 'resetting file offsets', 'from ', this.fileOffsets.get(filePath), 'to 0');
             this.fileOffsets.set(filePath, 0);
 
             // Load and store file content
@@ -75,7 +76,10 @@ export class DocumentationGenerator {
             }
 
             const ast = this.typeScriptParser.parse(filePath);
-            if (!ast) continue;
+            if (!ast || !ast.body) {
+                console.log('Invalid AST found for file', filePath);
+                continue;
+            }
 
             this.jsDocAnalyzer.analyze(ast);
 
@@ -90,7 +94,7 @@ export class DocumentationGenerator {
                     startLine: node.loc?.start.line || 0,
                     endLine: node.loc?.end.line || 0,
                     nodeType: node.type,
-                    className: node.type === 'ClassDeclaration' ? node.id?.name : undefined,
+                    className: this.jsDocAnalyzer.isClassNode(node) ? node.id?.name : undefined,
                     methodName: node.type === 'MethodDefinition' ? (node.key as TSESTree.Identifier).name : undefined,
                     code: this.getNodeCode(filePath, node),
                 };
@@ -103,8 +107,22 @@ export class DocumentationGenerator {
                 }
 
                 // If this is a class declaration, process its methods
-                if (node.type === 'ClassDeclaration') {
-                    const classBody = (node as TSESTree.ClassDeclaration).body;
+                if (this.jsDocAnalyzer.isClassNode(node)) {
+                    let classBody: TSESTree.ClassBody | null;
+
+                    if (node.type === 'ExportNamedDeclaration') {
+                        classBody = ((node as TSESTree.ExportNamedDeclaration).declaration as TSESTree.ClassDeclaration).body;
+                    } else {
+                        classBody = (node as TSESTree.ClassDeclaration).body;
+                    }
+
+                    if (!classBody) {
+                        console.log('No class body found for class', node.id?.name);
+                        continue;
+                    }
+
+                    console.log('processing class', node);
+
                     for (const classElement of classBody.body) {
                         if (classElement.type === 'MethodDefinition') {
                             const methodJsDocComment = this.jsDocAnalyzer.getJSDocComment(classElement, ast.comments || []);
@@ -137,7 +155,12 @@ export class DocumentationGenerator {
 
             // Process each node
             for (const queueItem of this.missingJsDocQueue) {
-                const comment = await this.jsDocGenerator.generateComment(queueItem);
+                let comment = '';
+                if (queueItem.className !== undefined) {
+                    comment = await this.jsDocGenerator.generateClassComment(queueItem);
+                } else {
+                    comment = await this.jsDocGenerator.generateComment(queueItem);
+                }
                 await this.updateFileWithJSDoc(queueItem.filePath, comment, queueItem.startLine);
                 this.hasChanges = true;
             }

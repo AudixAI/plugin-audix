@@ -63,9 +63,4 @@ export class DirectoryTraversal {
             this.excludedFiles.includes(path.basename(filePath))
         );
     }
-
-    public handleError(error: Error): void {
-        console.error('Directory Traversal Error:', error);
-        // Additional error handling logic
-    }
 }

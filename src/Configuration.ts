@@ -16,9 +16,6 @@ interface ConfigurationData {
     pullRequestTemplate: string;
     rootDirectory: string;
     excludedDirectories: string[];
-    aiService: {
-        apiKey: string;
-    };
     repository: Repository;
     branch: string;
     committedFiles: string[];
@@ -39,11 +36,6 @@ export class Configuration {
     public pullRequestTemplate: string = '';
     public rootDirectory: string = '';
     public excludedDirectories: string[] = [];
-    public aiService: {
-        apiKey: string;
-    } = {
-            apiKey: '',
-        };
     public repository: Repository = {
         owner: '',
         name: ''
@@ -73,7 +65,6 @@ export class Configuration {
             this.pullRequestTemplate = parsedConfig.pullRequestTemplate;
             this.rootDirectory = parsedConfig.rootDirectory;
             this.excludedDirectories = parsedConfig.excludedDirectories;
-            this.aiService = parsedConfig.aiService;
             this.repository = parsedConfig.repository;
             this.branch = parsedConfig.branch;
             this.committedFiles = parsedConfig.committedFiles;
@@ -99,7 +90,6 @@ export class Configuration {
             pullRequestTemplate: this.pullRequestTemplate,
             rootDirectory: this.rootDirectory,
             excludedDirectories: this.excludedDirectories,
-            aiService: this.aiService,
             repository: this.repository,
             branch: this.branch,
             committedFiles: this.committedFiles,

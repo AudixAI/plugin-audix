@@ -46,20 +46,26 @@ export class JsDocAnalyzer {
         });
     }
 
-    /**
-     * Checks if a node should have JSDoc documentation
-     */
     public shouldHaveJSDoc(node: TSESTree.Node): boolean {
         return (
             node.type === 'FunctionDeclaration' ||
-            node.type === 'ClassDeclaration' ||
+            this.isClassNode(node) ||
             node.type === 'MethodDefinition'
         );
     }
 
-    /**
-     * Gets the JSDoc comment for a node if it exists
-     */
+    public isClassNode(node: TSESTree.Node): boolean {
+        if (node.type === 'ClassDeclaration') {
+            return true;
+        }
+
+        if (node.type === 'ExportNamedDeclaration' && node.declaration?.type === 'ClassDeclaration') {
+            return true;
+        }
+
+        return false;
+    }
+
     public getJSDocComment(node: TSESTree.Node, comments: TSESTree.Comment[]): string | undefined {
         if (!this.shouldHaveJSDoc(node)) {
             return undefined;

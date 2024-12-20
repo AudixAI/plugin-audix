@@ -16,8 +16,6 @@ interface CreatePullRequestOptions {
 export class GitManager {
     private octokit: Octokit;
 
-    // Need to add private accessToken?: string - for None Public Repos
-    //{ auth: accessToken }
     constructor(public repository: Repository) {
         if (!process.env.GITHUB_ACCESS_TOKEN) {
             throw new Error('GITHUB_ACCESS_TOKEN is not set');
@@ -25,10 +23,6 @@ export class GitManager {
         this.octokit = new Octokit({
             auth: process.env.GITHUB_ACCESS_TOKEN,
         });
-    }
-
-    public commit(files: string[], message: string): void {
-        // Commit the specified files with the given commit message
     }
 
     public async getFilesInPullRequest(pullNumber: number): Promise<PrModeFileChange[]> {
