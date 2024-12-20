@@ -15,6 +15,12 @@ function has_jsdoc(x: number | string): number | string {
 
 
 
+/**
+ * A function that takes in a number or a string and either doubles the number or converts the string to uppercase.
+ *
+ * @param {number | string} x - The input value, can be either a number or a string.
+ * @return {number | string} - The doubled number if input is a number, or the input string converted to uppercase if input is a string.
+ */
 function does_not_have_jsdoc(x: number | string): number | string {
     if (typeof x === 'number') {
         return x * 2;
@@ -40,6 +46,32 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 * Class representing a simple class.
 */
 
+/**
+ * Constructor for the class with a specified x value.
+ * @param {number} x - The value of x to be initialized with.
+ */
+
+/**
+ * Multiply a number by 2.
+ *
+ * @param {number} x - The number to be multiplied.
+ * @returns {number} The result of multiplying the input number by 2.
+ */
+
+/**
+ * Convert a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The string representation of the input number.
+ */
+
+/**
+ * Converts a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} A string representation of the input number.
+ */
+ */
 class SimpleClass {
 
     /**
