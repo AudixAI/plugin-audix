@@ -35,7 +35,7 @@ async function main() {
         );
         const typeScriptParser = new TypeScriptParser();
         const jsDocAnalyzer = new JsDocAnalyzer(typeScriptParser);
-        const aiService = new AIService(configuration.aiService.apiKey);
+        const aiService = new AIService();
         const jsDocGenerator = new JsDocGenerator(aiService);
 
         const documentationGenerator = new DocumentationGenerator(
@@ -44,7 +44,8 @@ async function main() {
             jsDocAnalyzer,
             jsDocGenerator,
             gitManager,
-            configuration
+            configuration,
+            aiService
         );
 
         // Generate documentation

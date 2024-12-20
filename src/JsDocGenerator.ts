@@ -7,8 +7,7 @@ export class JsDocGenerator {
     public async generateComment(queueItem: ASTQueueItem): Promise<string> {
         const prompt = this.buildPrompt(queueItem);
         const comment = await this.aiService.generateComment(prompt);
-        const formattedComment = this.formatComment(comment);
-        return formattedComment;
+        return comment;
     }
 
     public async generateClassComment(
@@ -17,16 +16,18 @@ export class JsDocGenerator {
     ): Promise<string> {
         const prompt = this.buildClassPrompt(queueItem, methodComments);
         const comment = await this.aiService.generateComment(prompt);
-        const formattedComment = this.formatComment(comment);
-        return formattedComment;
+        return comment;
     }
 
     private buildPrompt(queueItem: ASTQueueItem): string {
         return `Generate JSDoc comment for the following code:
 
+
         \`\`\`typescript
         ${queueItem.code}
         \`\`\`
+        
+        Only return the JSDoc comment, not the code itself.
         `;
     }
 
@@ -44,11 +45,8 @@ export class JsDocGenerator {
 
         Methods:
         ${methodCommentsString}
+        
+        Only return the JSDoc comment, no other text or code.
         `;
-    }
-
-    private formatComment(comment: string): string {
-        // Format the comment to adhere to the project's coding style
-        return `/**\n * ${comment.trim().replace(/\n/g, '\n * ')}\n */`;
     }
 }

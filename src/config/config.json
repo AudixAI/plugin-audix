@@ -4,7 +4,7 @@
     "excludedFiles": [],
     "commitMessageTemplate": "",
     "pullRequestTemplate": "",
-    "rootDirectory": "./test",
+    "rootDirectory": "./",
     "excludedDirectories": [
         "node_modules"
     ],
@@ -14,7 +14,7 @@
     "repository": {
         "owner": "AudixAI",
         "name": "plugin-audix",
-        "pullNumber": 2
+        "pullNumber": 16
     },
     "branch": "main",
     "committedFiles": [],
@@ -25,8 +25,7 @@
         "documentation"
     ],
     "pullRequestReviewers": [
-        "user1",
-        "user2"
+        "shekharpalit"
     ],
     "workflowTriggers": [],
     "workflowSteps": []
