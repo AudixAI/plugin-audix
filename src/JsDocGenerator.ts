@@ -12,9 +12,8 @@ export class JsDocGenerator {
 
     public async generateClassComment(
         queueItem: ASTQueueItem,
-        methodComments: Record<string, string>
     ): Promise<string> {
-        const prompt = this.buildClassPrompt(queueItem, methodComments);
+        const prompt = this.buildClassPrompt(queueItem);
         const comment = await this.aiService.generateComment(prompt);
         return comment;
     }
@@ -33,20 +32,21 @@ export class JsDocGenerator {
 
     private buildClassPrompt(
         queueItem: ASTQueueItem,
-        methodComments: Record<string, string>
     ): string {
-        const methodCommentsString = Object.entries(methodComments)
-            .map(([methodName, comment]) => `@method ${methodName}\n${comment}`)
-            .join('\n');
-
-        return `Generate JSDoc comment for the following class:
+        return `Generate JSDoc comment for the following Class:
 
         Class name: ${queueItem.code.match(/class (\w+)/)?.[1]}
 
-        Methods:
-        ${methodCommentsString}
+        Only return the JSDoc for the Class itself, not the methods or anything in the class.
         
-        Only return the JSDoc comment, no other text or code.
+        Only return the JSDoc comment for the class, no other text or code.
+
+        Example:
+        \`\`\`
+        /**
+         * This is a class that does something. It has a method that does something.
+         */
+        \`\`\`
         `;
     }
 }
