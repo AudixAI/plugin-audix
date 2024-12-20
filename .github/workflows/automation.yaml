@@ -47,11 +47,11 @@ jobs:
         run: |
           # Convert comma-separated excluded directories to JSON array
           EXCLUDED_DIRS_JSON=$(echo "${{ github.event.inputs.excluded_directories }}" | \
-            jq -R 'split(",") | map(trim)')
+            jq -R 'split(",") | map(sub("^\\s+|\\s+$"; ""))')
           
           # Convert comma-separated reviewers to JSON array
           REVIEWERS_JSON=$(echo "${{ github.event.inputs.reviewers }}" | \
-            jq -R 'split(",") | map(trim)')
+            jq -R 'split(",") | map(sub("^\\s+|\\s+$"; ""))')
           
           # Update config.json using jq
           jq --arg pn "${{ github.event.inputs.pull_number }}" \
