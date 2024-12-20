@@ -63,6 +63,7 @@ export class DocumentationGenerator {
             if (fileChange.status === 'deleted') continue;
 
             const filePath = path.join(fileChange.filename);
+            console.log(`Processing file: ${filePath}`, 'resetting file offsets', 'from ', this.fileOffsets.get(filePath), 'to 0');
             this.fileOffsets.set(filePath, 0);
 
             // Load and store file content
@@ -137,7 +138,12 @@ export class DocumentationGenerator {
 
             // Process each node
             for (const queueItem of this.missingJsDocQueue) {
-                const comment = await this.jsDocGenerator.generateComment(queueItem);
+                let comment = '';
+                if (queueItem.nodeType === 'ClassDeclaration') {
+                    comment = await this.jsDocGenerator.generateClassComment(queueItem);
+                } else {
+                    comment = await this.jsDocGenerator.generateComment(queueItem);
+                }
                 await this.updateFileWithJSDoc(queueItem.filePath, comment, queueItem.startLine);
                 this.hasChanges = true;
             }
