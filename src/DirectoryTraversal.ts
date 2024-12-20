@@ -26,6 +26,8 @@ export class DirectoryTraversal {
                     );
                 })
                 .map((file) => path.join(this.rootDirectory, file));
+
+            console.log('Files to process: ', files);
             return files;
         } else {
             console.log('No PR Files Detected, Scanning all files in root directory');

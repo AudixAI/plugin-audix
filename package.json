@@ -12,7 +12,8 @@
     "license": "ISC",
     "dependencies": {
         "@octokit/rest": "^21.0.2",
-        "@types/node": "^22.10.2"
+        "@types/node": "^22.10.2",
+        "dotenv": "^16.4.7"
     },
     "devDependencies": {
         "@typescript-eslint/parser": "^8.18.1",

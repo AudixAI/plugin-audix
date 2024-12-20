@@ -22,7 +22,8 @@ async function main() {
         let prFiles: string[] = [];
         if (typeof configuration.repository.pullNumber === 'number') {
             console.log('Pull Request Number: ', configuration.repository.pullNumber);
-            prFiles = await gitManager.getFilesInPullRequest(configuration.repository.pullNumber);
+            const files = await gitManager.getFilesInPullRequest(configuration.repository.pullNumber);
+            prFiles = files.map((file) => file.filename);
         }
 
         // Create instances of the required components
@@ -42,7 +43,8 @@ async function main() {
             typeScriptParser,
             jsDocAnalyzer,
             jsDocGenerator,
-            gitManager
+            gitManager,
+            configuration
         );
 
         // Generate documentation
