@@ -4,6 +4,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+interface CreatePullRequestOptions {
+    title: string;
+    body: string;
+    head: string;
+    base: string;
+    labels?: string[];
+    reviewers?: string[];
+}
+
 export class GitManager {
     private octokit: Octokit;
 
@@ -87,12 +96,42 @@ export class GitManager {
         }
     }
 
-    public createPullRequest(
-        title: string,
-        description: string,
-        labels: string[],
-        reviewers: string[]
-    ): void {
-        // Create a pull request with the specified details
+    public async createPullRequest(options: CreatePullRequestOptions): Promise<void> {
+        try {
+            // Create the pull request
+            const { data: pr } = await this.octokit.pulls.create({
+                owner: this.repository.owner,
+                repo: this.repository.name,
+                title: options.title,
+                body: options.body,
+                head: options.head,
+                base: options.base
+            });
+
+            // Add labels if provided
+            if (options.labels && options.labels.length > 0) {
+                await this.octokit.issues.addLabels({
+                    owner: this.repository.owner,
+                    repo: this.repository.name,
+                    issue_number: pr.number,
+                    labels: options.labels
+                });
+            }
+
+            // Add reviewers if provided
+            if (options.reviewers && options.reviewers.length > 0) {
+                await this.octokit.pulls.requestReviewers({
+                    owner: this.repository.owner,
+                    repo: this.repository.name,
+                    pull_number: pr.number,
+                    reviewers: options.reviewers
+                });
+            }
+
+            console.log(`Created PR #${pr.number}: ${pr.html_url}`);
+        } catch (error) {
+            console.error('Error creating pull request:', error);
+            throw error;
+        }
     }
 }
