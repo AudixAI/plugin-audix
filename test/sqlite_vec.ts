@@ -64,6 +64,12 @@ class SimpleClass {
         return x.toString();
     }
 
+    /**
+     * Convert a number to a string.
+     * 
+     * @param {number} x - The number to be converted to a string.
+     * @returns {string} The string representation of the input number.
+     */
     simpleMethod3(x: number): string {
         return x.toString();
     }
