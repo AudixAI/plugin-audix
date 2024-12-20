@@ -1,7 +1,7 @@
 /**
  * Takes a number or string as input and performs different operations based on the type.
  * If the input is a number, it returns the input multiplied by 2.
- * If the input is a string, it returns the input converted to upper case.
+ * If the input is a string, it returns the input converted to upper case. test
  * 
  * @param {number | string} x - The input number or string to be processed.
  * @returns {number | string} The result of the operation based on the type of input.
