@@ -31,6 +31,10 @@ interface ConfigurationData {
     workflowSteps: string[];
 }
 
+/**
+ * Represents a configuration object with various settings for a project.
+ */
+
 export class Configuration {
     public aiPromptTemplates: string[] = [];
     public includedFiles: string[] = [];
@@ -59,8 +63,15 @@ export class Configuration {
     public workflowSteps: string[] = [];
     private configPath = path.join(dirname(__dirname), 'src', 'config', 'config.json');
 
+/**
+ * Constructor for the class.
+ */
     constructor() { }
 
+/**
+ * Loads the configuration data from a file and initializes class properties.
+ * @returns {void}
+ */
     public load(): void {
         try {
             const configData = fs.readFileSync(this.configPath, 'utf8');
@@ -90,6 +101,9 @@ export class Configuration {
         }
     }
 
+/**
+ * Saves the current configuration data to a file.
+ */
     public save(): void {
         const configData: ConfigurationData = {
             aiPromptTemplates: this.aiPromptTemplates,
