@@ -14,6 +14,11 @@ function has_jsdoc(x: number | string): number | string {
 }
 
 
+/**
+ * Function that takes a number or string and returns either the number multiplied by 2 or the string converted to uppercase.
+ * @param {number | string} x - The input number or string
+ * @returns {number | string} The output of the function, either number or string
+ */
 function does_not_have_jsdoc(x: number | string): number | string {
     if (typeof x === 'number') {
         return x * 2;
@@ -36,6 +41,9 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 }
 
 
+/**
+ * This is a simple class that serves as a template for creating other classes.
+ */
 class SimpleClass {
 
     /**
@@ -64,6 +72,12 @@ class SimpleClass {
         return x.toString();
     }
 
+/**
+ * Converts a number to a string representation.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The string representation of the input number.
+ */
     simpleMethod3(x: number): string {
         return x.toString();
     }
