@@ -8,6 +8,13 @@ import { AIService } from './AIService.js';
 import { GitManager } from './GitManager.js';
 // import { GithubActionsWorkflow } from './GithubActionsWorkflow';
 
+/**
+ * Asynchronous function that serves as the main entry point for generating documentation.
+ * It initializes various components, loads configuration, retrieves files in a pull request,
+ * creates instances of required components, generates documentation, and handles errors.
+ *
+ * @returns {Promise<void>} A Promise that resolves once the documentation generation process is complete.
+ */
 async function main() {
     try {
         // Load configuration
