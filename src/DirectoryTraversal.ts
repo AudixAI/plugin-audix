@@ -1,7 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Class representing a directory traversal utility.
+ */
+
 export class DirectoryTraversal {
+/**
+ * Constructs a new instance of the class.
+ * 
+ * @param {string} rootDirectory - The root directory.
+ * @param {string[]} [excludedDirectories=[]] - The directories to be excluded.
+ * @param {string[]} [excludedFiles=[]] - The files to be excluded.
+ * @param {string[]} [prFiles=[]] - The files related to pull requests.
+ */
     constructor(
         public rootDirectory: string,
         public excludedDirectories: string[] = [],
@@ -9,6 +21,11 @@ export class DirectoryTraversal {
         public prFiles: string[] = []
     ) { }
 
+/**
+ * Traverse the files based on the PR files or all files in the root directory.
+ * 
+ * @returns An array of strings representing the files to be processed.
+ */
     public traverse(): string[] {
         if (this.prFiles.length > 0) {
             console.log('Detected PR Files: ', this.prFiles);
@@ -57,6 +74,11 @@ export class DirectoryTraversal {
         }
     }
 
+/**
+ * Check if a file path is excluded based on matching with the excluded directories and files.
+ * @param {string} filePath - The file path to check for exclusion.
+ * @returns {boolean} - True if the file path is excluded, false otherwise.
+ */
     public isExcluded(filePath: string): boolean {
         return (
             this.excludedDirectories.includes(path.dirname(filePath)) ||
@@ -64,6 +86,12 @@ export class DirectoryTraversal {
         );
     }
 
+/**
+ * Handle errors that occur during directory traversal.
+ * 
+ * @param {Error} error - The error that occurred
+ * @returns {void}
+ */
     public handleError(error: Error): void {
         console.error('Directory Traversal Error:', error);
         // Additional error handling logic

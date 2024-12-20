@@ -6,20 +6,41 @@ interface Location {
     end: number;
 }
 
+/**
+ * Checks if a node should have JSDoc documentation
+ */
 export class JsDocAnalyzer {
 
     public missingJsDocNodes: TSESTree.Node[] = [];
 
+/**
+ * Constructor for a TypeScriptParser instance.
+ * 
+ * @param {TypeScriptParser} typeScriptParser - The TypeScriptParser object to be used in the constructor.
+ */
     constructor(
         public typeScriptParser: TypeScriptParser,
     ) { }
 
 
 
+/**
+ * Analyzes the AST of a TypeScript program.
+ * 
+ * @param {TSESTree.Program} ast - The Abstract Syntax Tree of the program.
+ * @returns {void}
+ */
     public analyze(ast: TSESTree.Program): void {
         this.traverse(ast, ast.comments || []);
     }
 
+/**
+ * Traverses the given node and its children, checking for missing JSDoc comments.
+ * 
+ * @param {TSESTree.Node} node - The node to traverse.
+ * @param {TSESTree.Comment[]} [comments] - An optional array of comments associated with the node.
+ * @returns {void}
+ */
     private traverse(node: TSESTree.Node, comments?: TSESTree.Comment[]): void {
         if (this.shouldHaveJSDoc(node)) {
             const jsDocComment = this.getJSDocComment(node, comments || []);
@@ -52,9 +73,26 @@ export class JsDocAnalyzer {
     public shouldHaveJSDoc(node: TSESTree.Node): boolean {
         return (
             node.type === 'FunctionDeclaration' ||
-            node.type === 'ClassDeclaration' ||
+            this.isClassNode(node) ||
             node.type === 'MethodDefinition'
         );
+    }
+
+/**
+ * Determines if the given node is a ClassDeclaration or an export with a named ClassDeclaration.
+ * @param {TSESTree.Node} node - The node to check.
+ * @returns {boolean} True if the node is a ClassDeclaration or an export with a named ClassDeclaration, false otherwise.
+ */
+    public isClassNode(node: TSESTree.Node): boolean {
+        if (node.type === 'ClassDeclaration') {
+            return true;
+        }
+
+        if (node.type === 'ExportNamedDeclaration' && node.declaration?.type === 'ClassDeclaration') {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -76,6 +114,11 @@ export class JsDocAnalyzer {
         })?.value;
     }
 
+/**
+ * Returns the location of the given node within the source code.
+ * @param {TSESTree.Node} node - The node to get location for.
+ * @returns {Location} - The start and end lines of the node within the source code.
+ */
     public getNodeLocation(node: TSESTree.Node): Location {
         return {
             start: node.loc.start.line,
@@ -83,6 +126,13 @@ export class JsDocAnalyzer {
         };
     }
 
+/**
+ * Retrieves all methods of a class in a given TypeScript file.
+ * 
+ * @param {string} filePath - The path to the TypeScript file.
+ * @param {string} [className] - The name of the class to retrieve methods from. If not provided, retrieves methods from all classes.
+ * @returns {TSESTree.MethodDefinition[]} An array of MethodDefinition nodes representing the methods of the class(es) found in the file.
+ */
     public getClassMethods(filePath: string, className?: string): TSESTree.MethodDefinition[] {
         const ast = this.typeScriptParser.parse(filePath);
         if (!ast) return [];
