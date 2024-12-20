@@ -7,6 +7,19 @@ import { Configuration } from './Configuration.js';
 import { AIService } from './AIService.js';
 import { GitManager } from './GitManager.js';
 
+/**
+ * Main function for generating documentation.
+ * This function creates instances of necessary classes
+ * such as Configuration, GitManager, DirectoryTraversal,
+ * TypeScriptParser, JsDocAnalyzer, AIService, JsDocGenerator,
+ * and DocumentationGenerator. It then loads the configuration,
+ * gets the files in a pull request if specified in the configuration,
+ * sets up directory traversal, parses TypeScript files,
+ * analyzes JSDoc comments, and generates documentation using
+ * an AI service. If an error occurs during the process,
+ * it logs the error and exits the process with code 1.
+ * @async
+ */
 async function main() {
     try {
         const configuration = new Configuration();
