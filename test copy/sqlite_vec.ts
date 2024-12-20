@@ -45,6 +45,32 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 * Class representing a simple class.
 */
 
+/**
+ * Constructor for the class with a specified x value.
+ * @param {number} x - The value of x to be initialized with.
+ */
+
+/**
+ * Multiply a number by 2.
+ *
+ * @param {number} x - The number to be multiplied.
+ * @returns {number} The result of multiplying the input number by 2.
+ */
+
+/**
+ * Convert a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The string representation of the input number.
+ */
+
+/**
+ * Converts a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} A string representation of the input number.
+ */
+ */
 class SimpleClass {
 
 /**
