@@ -14,6 +14,13 @@ function has_jsdoc(x: number | string): number | string {
 }
 
 
+/**
+ * Takes a number or a string as input and either returns the input multiplied by 2 if it's a number,
+ * or returns the input converted to uppercase if it's a string.
+ *
+ * @param {number | string} x - The number or string input
+ * @return {number | string} The modified input
+ */
 function does_not_have_jsdoc(x: number | string): number | string {
     if (typeof x === 'number') {
         return x * 2;
@@ -36,6 +43,25 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 }
 
 
+/**
+ * Constructor for the class with a specified x value.
+ * @param {number} x - The value of x to be initialized with.
+ */
+
+/**
+ * Multiply a number by 2.
+ *
+ * @param {number} x - The number to be multiplied.
+ * @returns {number} The result of multiplying the input number by 2.
+ */
+
+/**
+ * Convert a number to a string.
+ * 
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The string representation of the input number.
+ */
+ */
 class SimpleClass {
 
     /**
@@ -64,6 +90,12 @@ class SimpleClass {
         return x.toString();
     }
 
+/**
+ * Converts a number to a string.
+ *
+ * @param {number} x - The number to be converted to a string.
+ * @returns {string} The number converted to a string.
+ */
     simpleMethod3(x: number): string {
         return x.toString();
     }
