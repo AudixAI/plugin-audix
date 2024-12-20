@@ -15,6 +15,12 @@ function has_jsdoc(x: number | string): number | string {
 
 
 
+/**
+ * This function takes in a number or a string as input and returns either the input multiplied by 2 if it's a number,
+ * or the input converted to uppercase if it's a string.
+ * @param {number | string} x - The input number or string
+ * @returns {number | string} The output will be a number if the input is a number and a string if the input is a string
+ */
 function does_not_have_jsdoc(x: number | string): number | string {
     if (typeof x === 'number') {
         return x * 2;
@@ -39,6 +45,10 @@ function does_not_have_jsdoc_2(x: number | string): number | string {
 /**
 * Class representing a simple class.
 */
+
+/**
+ * This is a simple class.
+ */
 
 class SimpleClass {
 
