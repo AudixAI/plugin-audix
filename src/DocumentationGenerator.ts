@@ -1,5 +1,4 @@
 import { DirectoryTraversal } from './DirectoryTraversal.js';
-import { TypeScriptFileIdentifier } from './TypeScriptFileIdentifier.js';
 import { TypeScriptParser } from './TypeScriptParser.js';
 import { JsDocAnalyzer } from './JsDocAnalyzer.js';
 import { JsDocGenerator } from './JsDocGenerator.js';
@@ -47,7 +46,7 @@ export class DocumentationGenerator {
 
     /**
      * Asynchronously generates JSDoc comments for the TypeScript files based on the given pull request number or full mode.
-     * 
+     *
      * @param pullNumber - Optional. The pull request number to generate JSDoc comments for.
      * @returns A promise that resolves once the JSDoc generation process is completed.
      */
@@ -58,24 +57,35 @@ export class DocumentationGenerator {
         if (pullNumber) {
             const prFiles = await this.gitManager.getFilesInPullRequest(pullNumber);
             fileChanges = prFiles.filter(file => {
-                const normalizedPath = path.normalize(file.filename);
-                const rootDir = this.configuration.targetDirectory;
-                const isInRootDir = rootDir === './' || rootDir === '.' || normalizedPath.startsWith(rootDir);
+                // Convert PR file path (which is repo-relative) to absolute path
+                const absolutePath = this.configuration.toAbsolutePath(file.filename);
 
-                const isExcluded = this.configuration.excludedDirectories.some(dir => {
-                    const normalizedExcludeDir = path.normalize(dir);
-                    return normalizedPath.includes(normalizedExcludeDir);
-                }) || this.configuration.excludedFiles.some(excludedFile => {
-                    const normalizedExcludeFile = path.normalize(excludedFile);
-                    return normalizedPath.endsWith(normalizedExcludeFile);
-                });
+                // Check if file is in target directory
+                const isInTargetDir = absolutePath.startsWith(this.configuration.absolutePath);
 
-                return isInRootDir && !isExcluded;
+                // Get path relative to target directory for exclusion checking
+                const relativeToTarget = path.relative(
+                    this.configuration.absolutePath,
+                    absolutePath
+                );
+
+                // Check exclusions
+                const isExcluded =
+                    // Check excluded directories
+                    this.configuration.excludedDirectories.some(dir =>
+                        relativeToTarget.split(path.sep)[0] === dir
+                    ) ||
+                    // Check excluded files
+                    this.configuration.excludedFiles.some(excludedFile =>
+                        path.basename(absolutePath) === excludedFile
+                    );
+
+                return isInTargetDir && !isExcluded;
             });
         } else {
             const typeScriptFiles = this.directoryTraversal.traverse();
             fileChanges = typeScriptFiles.map((file) => ({
-                filename: file,
+                filename: this.configuration.toRelativePath(file),
                 status: 'modified',
             }));
         }
@@ -84,15 +94,17 @@ export class DocumentationGenerator {
         for (const fileChange of fileChanges) {
             if (fileChange.status === 'deleted') continue;
 
-            const filePath = path.join(fileChange.filename);
+            const filePath = this.configuration.toAbsolutePath(fileChange.filename);
             console.log(`Processing file: ${filePath}`, 'resetting file offsets', 'from ', this.fileOffsets.get(filePath), 'to 0');
             this.fileOffsets.set(filePath, 0);
 
             // Load and store file content
             if (fileChange.status === 'added' && 'contents_url' in fileChange) {
+                console.log('Getting file content from GitHub API');
                 const fileContent = await this.getFileContent(fileChange.contents_url);
                 this.fileContents.set(filePath, fileContent);
             } else {
+                console.log('Getting file content from local file system');
                 const fileContent = fs.readFileSync(filePath, 'utf-8');
                 this.fileContents.set(filePath, fileContent);
             }
@@ -107,66 +119,7 @@ export class DocumentationGenerator {
 
             // Process each node in the file
             for (const node of ast.body) {
-                if (!this.jsDocAnalyzer.shouldHaveJSDoc(node)) continue;
-
-                // Process the current node
-                const jsDocComment = this.jsDocAnalyzer.getJSDocComment(node, ast.comments || []);
-                const queueItem: ASTQueueItem = {
-                    filePath: filePath,
-                    startLine: node.loc?.start.line || 0,
-                    endLine: node.loc?.end.line || 0,
-                    nodeType: node.type,
-                    className: this.jsDocAnalyzer.isClassNode(node) ? node.id?.name : undefined,
-                    methodName: node.type === 'MethodDefinition' ? (node.key as TSESTree.Identifier).name : undefined,
-                    code: this.getNodeCode(filePath, node),
-                };
-
-                if (jsDocComment) {
-                    queueItem.jsDoc = jsDocComment;
-                    this.existingJsDocQueue.push(queueItem);
-                } else {
-                    this.missingJsDocQueue.push(queueItem);
-                }
-
-                // If this is a class declaration, process its methods
-                if (this.jsDocAnalyzer.isClassNode(node)) {
-                    let classBody: TSESTree.ClassBody | null;
-
-                    if (node.type === 'ExportNamedDeclaration') {
-                        classBody = ((node as TSESTree.ExportNamedDeclaration).declaration as TSESTree.ClassDeclaration).body;
-                    } else {
-                        classBody = (node as TSESTree.ClassDeclaration).body;
-                    }
-
-                    if (!classBody) {
-                        console.log('No class body found for class', node.id?.name);
-                        continue;
-                    }
-
-                    console.log('processing class', node);
-
-                    for (const classElement of classBody.body) {
-                        if (classElement.type === 'MethodDefinition') {
-                            const methodJsDocComment = this.jsDocAnalyzer.getJSDocComment(classElement, ast.comments || []);
-                            const methodQueueItem: ASTQueueItem = {
-                                filePath: filePath,
-                                startLine: classElement.loc?.start.line || 0,
-                                endLine: classElement.loc?.end.line || 0,
-                                nodeType: classElement.type,
-                                className: node.id?.name,
-                                methodName: (classElement.key as TSESTree.Identifier).name,
-                                code: this.getNodeCode(filePath, classElement),
-                            };
-
-                            if (methodJsDocComment) {
-                                methodQueueItem.jsDoc = methodJsDocComment;
-                                this.existingJsDocQueue.push(methodQueueItem);
-                            } else {
-                                this.missingJsDocQueue.push(methodQueueItem);
-                            }
-                        }
-                    }
-                }
+                this.processNode(node, filePath, ast);
             }
         }
 
@@ -192,7 +145,7 @@ export class DocumentationGenerator {
                 for (const [filePath, content] of this.fileContents) {
                     await this.gitManager.commitFile(
                         this.branchName,
-                        filePath,
+                        this.configuration.toRelativePath(filePath),
                         content,
                         `docs: Add JSDoc documentation to ${path.basename(filePath)}`
                     );
@@ -207,6 +160,49 @@ export class DocumentationGenerator {
                     labels: ['documentation', 'automated-pr'],
                     reviewers: this.configuration.pullRequestReviewers || []
                 });
+            }
+        }
+    }
+
+    /**
+     * Processes a single AST node and its children for JSDoc documentation
+     * @param node - The AST node to process
+     * @param filePath - Path to the source file
+     * @param ast - The complete AST
+     */
+    private processNode(node: TSESTree.Node, filePath: string, ast: TSESTree.Program): void {
+        if (!this.jsDocAnalyzer.shouldHaveJSDoc(node)) return;
+
+        // Process the main node
+        const jsDocComment = this.jsDocAnalyzer.getJSDocComment(node, ast.comments || []);
+        const queueItem = this.jsDocAnalyzer.createQueueItem(
+            node,
+            filePath,
+            this.getNodeCode(filePath, node)
+        );
+
+        if (jsDocComment) {
+            queueItem.jsDoc = jsDocComment;
+            this.existingJsDocQueue.push(queueItem);
+        } else {
+            this.missingJsDocQueue.push(queueItem);
+        }
+
+        // Process any documentable children (like class methods)
+        const children = this.jsDocAnalyzer.getDocumentableChildren(node);
+        for (const child of children) {
+            const childJsDocComment = this.jsDocAnalyzer.getJSDocComment(child, ast.comments || []);
+            const childQueueItem = this.jsDocAnalyzer.createQueueItem(
+                child,
+                filePath,
+                this.getNodeCode(filePath, child)
+            );
+
+            if (childJsDocComment) {
+                childQueueItem.jsDoc = childJsDocComment;
+                this.existingJsDocQueue.push(childQueueItem);
+            } else {
+                this.missingJsDocQueue.push(childQueueItem);
             }
         }
     }
@@ -247,14 +243,19 @@ export class DocumentationGenerator {
 
     /**
      * Retrieves the content of a file from the provided URL.
-     * 
+     *
      * @param {string} contentsUrl - The URL of the file contents
      * @returns {Promise<string>} The content of the file as a string
      */
     private async getFileContent(contentsUrl: string): Promise<string> {
-        const response = await fetch(contentsUrl);
-        const data = await response.json();
-        return Buffer.from(data.content, 'base64').toString('utf-8');
+        try {
+            const response = await fetch(contentsUrl);
+            const data = await response.json();
+            return Buffer.from(data.content, 'base64').toString('utf-8');
+        } catch (error) {
+            console.error('Error fetching file content from GitHub API, ensure the PR has been merged');
+            return '';
+        }
     }
 
     /**
@@ -288,7 +289,7 @@ export class DocumentationGenerator {
                 body: content.body
             };
         } catch (error) {
-            console.error('Error parsing AI response:', error);
+            console.error('Error parsing AI response for PR content generation, using default values');
             return {
                 title: `docs: Add JSDoc documentation${pullNumber ? ` for PR #${pullNumber}` : ''}`,
                 body: this.generateDefaultPRBody()
@@ -298,7 +299,7 @@ export class DocumentationGenerator {
 
     /**
      * Generates the default pull request body for adding JSDoc documentation to TypeScript files.
-     * 
+     *
      * @returns {string} The default pull request body containing information about the changes made.
      */
     private generateDefaultPRBody(): string {

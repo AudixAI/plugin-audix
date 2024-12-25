@@ -1,125 +1,148 @@
+// Configuration.ts
 import * as fs from 'fs';
+import * as yaml from 'yaml';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { Repository } from './types/index.js';
 
-// Get the equivalent of __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Gets the repository root path by going up two levels from the current file
+ * This assumes the code is in src/ directory of the package
+ */
+const getRepoRoot = () => path.resolve(__dirname, '../');
 
 interface ConfigurationData {
-    aiPromptTemplates: string[];
-    includedFiles: string[];
-    excludedFiles: string[];
-    commitMessageTemplate: string;
-    pullRequestTemplate: string;
-    targetDirectory: string;
+    rootDirectory: {
+        absolute: string;  // Full path from filesystem root
+        relative: string;  // Path relative to repository root
+    };
     excludedDirectories: string[];
     repository: Repository;
-    branch: string;
-    committedFiles: string[];
     commitMessage: string;
     pullRequestTitle: string;
     pullRequestDescription: string;
     pullRequestLabels: string[];
     pullRequestReviewers: string[];
-    workflowTriggers: string[];
-    workflowSteps: string[];
+    excludedFiles: string[];
 }
 
 /**
  * Represents a configuration object that holds various settings for a project.
- *
- **/
-export class Configuration {
-    public aiPromptTemplates: string[] = [];
-    public includedFiles: string[] = [];
-    public excludedFiles: string[] = [];
-    public commitMessageTemplate: string = '';
-    public pullRequestTemplate: string = '';
-    public targetDirectory: string = '';
+ * Handles both absolute and relative paths for different operations.
+ */
+export class Configuration implements Omit<ConfigurationData, 'rootDirectory'> {
+    private _rootDirectory!: ConfigurationData['rootDirectory'];
+    private readonly repoRoot: string;
+
     public excludedDirectories: string[] = [];
     public repository: Repository = {
-        owner: '',
-        name: ''
+        owner: 'ai16z',
+        name: 'eliza',
+        pullNumber: undefined
     };
-    public branch: string = '';
-    public committedFiles: string[] = [];
-    public commitMessage: string = '';
-    public pullRequestTitle: string = '';
-    public pullRequestDescription: string = '';
-    public pullRequestLabels: string[] = [];
+    public commitMessage: string = 'Generated JSDoc comments';
+    public pullRequestTitle: string = 'JSDoc Generation';
+    public pullRequestDescription: string = 'Automated JSDoc generation for the codebase';
+    public pullRequestLabels: string[] = ['documentation', 'automated-pr'];
     public pullRequestReviewers: string[] = [];
-    public workflowTriggers: string[] = [];
-    public workflowSteps: string[] = [];
-    private configPath = path.join(dirname(__dirname), 'src', 'config', 'config.json');
+    public excludedFiles: string[] = ["index.d.ts"];
+    public branch: string = 'develop';
 
-    /**
-     * Constructor for initializing a new instance.
-     */
-    constructor() { }
-
-    /**
-     * Loads configuration data from a file, parses it, and assigns the values to respective properties.
-     */
-    public load(): void {
-        try {
-            const configData = fs.readFileSync(this.configPath, 'utf8');
-            const parsedConfig: ConfigurationData = JSON.parse(configData);
-
-            this.aiPromptTemplates = parsedConfig.aiPromptTemplates;
-            this.includedFiles = parsedConfig.includedFiles;
-            this.excludedFiles = parsedConfig.excludedFiles;
-            this.commitMessageTemplate = parsedConfig.commitMessageTemplate;
-            this.pullRequestTemplate = parsedConfig.pullRequestTemplate;
-            this.targetDirectory = parsedConfig.targetDirectory;
-            this.excludedDirectories = parsedConfig.excludedDirectories;
-            this.repository = parsedConfig.repository;
-            this.branch = parsedConfig.branch;
-            this.committedFiles = parsedConfig.committedFiles;
-            this.commitMessage = parsedConfig.commitMessage;
-            this.pullRequestTitle = parsedConfig.pullRequestTitle;
-            this.pullRequestDescription = parsedConfig.pullRequestDescription;
-            this.pullRequestLabels = parsedConfig.pullRequestLabels;
-            this.pullRequestReviewers = parsedConfig.pullRequestReviewers;
-            this.workflowTriggers = parsedConfig.workflowTriggers;
-            this.workflowSteps = parsedConfig.workflowSteps;
-        } catch (error) {
-            console.error('Error loading configuration:', error);
-            throw error;
-        }
+    constructor() {
+        this.repoRoot = getRepoRoot();
+        this.loadConfiguration();
     }
 
-    /**
-     * Saves the current configuration data to a JSON file.
-     */
-    public save(): void {
-        const configData: ConfigurationData = {
-            aiPromptTemplates: this.aiPromptTemplates,
-            includedFiles: this.includedFiles,
-            excludedFiles: this.excludedFiles,
-            commitMessageTemplate: this.commitMessageTemplate,
-            pullRequestTemplate: this.pullRequestTemplate,
-            targetDirectory: this.targetDirectory,
-            excludedDirectories: this.excludedDirectories,
-            repository: this.repository,
-            branch: this.branch,
-            committedFiles: this.committedFiles,
-            commitMessage: this.commitMessage,
-            pullRequestTitle: this.pullRequestTitle,
-            pullRequestDescription: this.pullRequestDescription,
-            pullRequestLabels: this.pullRequestLabels,
-            pullRequestReviewers: this.pullRequestReviewers,
-            workflowTriggers: this.workflowTriggers,
-            workflowSteps: this.workflowSteps,
-        };
+    get rootDirectory(): ConfigurationData['rootDirectory'] {
+        return this._rootDirectory;
+    }
 
-        try {
-            fs.writeFileSync(this.configPath, JSON.stringify(configData, null, 2));
-        } catch (error) {
-            console.error('Error saving configuration:', error);
-            throw error;
+    get absolutePath(): string {
+        return this._rootDirectory.absolute;
+    }
+
+    get relativePath(): string {
+        return this._rootDirectory.relative;
+    }
+
+    public toRelativePath(absolutePath: string): string {
+        return path.relative(this.repoRoot, absolutePath);
+    }
+
+    public toAbsolutePath(relativePath: string): string {
+        return path.resolve(this.repoRoot, relativePath);
+    }
+
+    private loadConfiguration(): void {
+        // First try to get from environment variables
+        const rootDirectory = process.env.INPUT_ROOT_DIRECTORY;
+        let inputs;
+
+        console.log('Environment variables:', {
+            rootDirectory: process.env.INPUT_ROOT_DIRECTORY,
+            pullNumber: process.env.INPUT_PULL_NUMBER,
+            excludedDirs: process.env.INPUT_EXCLUDED_DIRECTORIES,
+            reviewers: process.env.INPUT_REVIEWERS
+        });
+
+        if (rootDirectory) {
+            console.log('Using root directory from environment variable:', rootDirectory);
+            this._rootDirectory = {
+                absolute: path.resolve(this.repoRoot, rootDirectory),
+                relative: rootDirectory.replace(/^\/+/, '')
+            };
+        } else {
+            console.log('Falling back to workflow file configuration');
+            const workflowPath = join(this.repoRoot, '.github/workflows/jsdoc-automation.yml');
+            if (!fs.existsSync(workflowPath)) {
+                throw new Error(`Workflow file not found at ${workflowPath}`);
+            }
+            const workflowContent = fs.readFileSync(workflowPath, 'utf8');
+            const workflow = yaml.parse(workflowContent);
+            const inputs = workflow.on.workflow_dispatch.inputs;
+
+            if (!inputs?.root_directory?.default) {
+                throw new Error('No root directory default found in workflow configuration');
+            }
+
+            const targetDir = inputs.root_directory.default;
+            console.log('Using default root directory from workflow:', targetDir);
+            this._rootDirectory = {
+                absolute: path.resolve(this.repoRoot, targetDir),
+                relative: targetDir.replace(/^\/+/, '')
+            };
         }
+
+        console.log('Final root directory configuration:', {
+            absolute: this._rootDirectory.absolute,
+            relative: this._rootDirectory.relative
+        });
+
+        // Handle other inputs
+        if (process.env.INPUT_PULL_NUMBER) {
+            console.log('Setting pull number from env:', process.env.INPUT_PULL_NUMBER);
+            this.repository.pullNumber = parseInt(process.env.INPUT_PULL_NUMBER);
+        }
+
+        this.excludedDirectories = this.parseCommaSeparatedInput(
+            process.env.INPUT_EXCLUDED_DIRECTORIES,
+            ['node_modules', 'dist', 'test']
+        );
+
+        this.pullRequestReviewers = this.parseCommaSeparatedInput(
+            process.env.INPUT_REVIEWERS,
+            []
+        );
+    }
+
+    private parseCommaSeparatedInput(input: string | undefined, defaultValue: string[]): string[] {
+        if (!input) return defaultValue;
+        return input
+            .split(',')
+            .map(item => item.trim())
+            .filter(Boolean);
     }
 }
