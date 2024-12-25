@@ -39,8 +39,8 @@ export class Configuration implements Omit<ConfigurationData, 'rootDirectory'> {
 
     public excludedDirectories: string[] = [];
     public repository: Repository = {
-        owner: 'ai16z',
-        name: 'eliza',
+        owner: 'AudixAI',
+        name: 'plugin-audix',
         pullNumber: undefined
     };
     public commitMessage: string = 'Generated JSDoc comments';
@@ -49,7 +49,7 @@ export class Configuration implements Omit<ConfigurationData, 'rootDirectory'> {
     public pullRequestLabels: string[] = ['documentation', 'automated-pr'];
     public pullRequestReviewers: string[] = [];
     public excludedFiles: string[] = ["index.d.ts"];
-    public branch: string = 'develop';
+    public branch: string = 'main';
 
     constructor() {
         this.repoRoot = getRepoRoot();
