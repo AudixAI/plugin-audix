@@ -21,14 +21,14 @@ Create an LLM based solution so whenever a new plug is added, the following is p
 ## Step 2 - Overview and purpose
 - utilize JSDoc for Overview and purpose - ToDo
 
-## Step 1 - Configuration requirements
+## Step 3 - Configuration requirements
 - utilize JSDoc for Configuration requirements - ToDo
 
-## Step 1 - Usage examples
+## Step 4 - Usage examples
 - utilize JSDoc for Usage examples - ToDo
 
-## Step 1 - API reference
+## Step 5 - API reference
 - utilize JSDoc for API reference - ToDo
 
-## Step 1 - Common issues/troubleshooting
+## Step 6 - Common issues/troubleshooting
 - utilize JSDoc for Common issues/troubleshooting - ToDo
