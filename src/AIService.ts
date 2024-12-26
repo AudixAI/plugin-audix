@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import dotenv from 'dotenv';
-import { ASTQueueItem, PluginDocumentation } from "./types/index.js";
+import { ASTQueueItem, EnvUsage, PluginDocumentation, TodoItem } from "./types/index.js";
 
 dotenv.config();
 
@@ -11,6 +11,10 @@ interface OrganizedDocs {
     types: ASTQueueItem[];
 }
 
+interface TodoSection {
+    todos: string;
+    todoCount: number;
+}
 
 /**
  * Service for interacting with OpenAI chat API.
@@ -51,21 +55,26 @@ export class AIService {
     public async generatePluginDocumentation({
         existingDocs,
         packageJson,
-        readmeContent
+        readmeContent,
+        todoItems,
+        envUsages
     }: {
         existingDocs: ASTQueueItem[];
         packageJson: any;
         readmeContent?: string;
-    }): Promise<PluginDocumentation> {
+        todoItems: TodoItem[];
+        envUsages: EnvUsage[];
+    }): Promise<PluginDocumentation & { todos: string }> {
         const organizedDocs = this.organizeDocumentation(existingDocs);
 
-        const [overview, installation, configuration, usage, apiRef, troubleshooting] = await Promise.all([
+        const [overview, installation, configuration, usage, apiRef, troubleshooting, todoSection] = await Promise.all([
             this.generateOverview(organizedDocs, packageJson),
             this.generateInstallation(packageJson),
-            this.generateConfiguration(organizedDocs, packageJson),
+            this.generateConfiguration(envUsages),
             this.generateUsage(organizedDocs, packageJson),
             this.generateApiReference(organizedDocs),
-            this.generateTroubleshooting(organizedDocs, packageJson)
+            this.generateTroubleshooting(organizedDocs, packageJson),
+            this.generateTodoSection(todoItems)
         ]);
 
         return {
@@ -74,7 +83,8 @@ export class AIService {
             configuration,
             usage,
             apiReference: apiRef,
-            troubleshooting
+            troubleshooting,
+            todos: todoSection.todos
         };
     }
 
@@ -154,29 +164,24 @@ export class AIService {
     /**
  * Generates configuration documentation based on JSDoc and package.json
  */
-    private async generateConfiguration(docs: OrganizedDocs, packageJson: any): Promise<string> {
-        const configClasses = docs.classes.filter(c =>
-            c.className?.toLowerCase().includes('config') ||
-            c.jsDoc?.toLowerCase().includes('configuration')
-        );
+    // todo - had file & lines here, liked it for both env & todo, maybe add
+    private async generateConfiguration(envUsages: EnvUsage[]): Promise<string> {
+        const prompt = `Generate configuration documentation based on these environment variable usages:
 
-        const prompt = `Generate configuration documentation based on:
-    
-    Configuration classes:
-    ${configClasses.map(c => `${c.className}: ${c.jsDoc}`).join('\n')}
-    
-    Package configuration (from package.json):
-    ${JSON.stringify(packageJson.config || {}, null, 2)}
-    
-    Include:
-    1. Required configuration options
-    2. Optional configuration settings
-    3. Configuration file format and location
-    4. Environment variables
-    5. Default values
-    6. Configuration examples
-    
-    Format the response in markdown.`;
+${envUsages.map(item => `
+Environment Variable: ${item.code}
+Full Context: ${item.fullContext}
+`).join('\n')}
+
+Create comprehensive configuration documentation that:
+1. Lists all required environment variables
+2. Explains the purpose of each variable
+3. Provides example values where possible
+4. Groups related configuration variables
+5. Includes code examples showing usage
+6. Explains any default values or fallbacks
+
+Format the response in markdown with proper headings and code blocks.`;
 
         return await this.generateComment(prompt);
     }
@@ -263,6 +268,39 @@ export class AIService {
         return await this.generateComment(prompt);
     }
 
+    /**
+ * Generates TODO section documentation from found TODO comments
+ */
+    private async generateTodoSection(todoItems: TodoItem[]): Promise<TodoSection> {
+        if (todoItems.length === 0) {
+            return {
+                todos: "No TODOs found in the codebase.",
+                todoCount: 0
+            };
+        }
+
+        const prompt = `Generate a TODO section for documentation based on these TODO items:
+
+${todoItems.map(item => `
+TODO Comment: ${item.comment}
+Code Context: ${item.fullContext}
+`).join('\n')}
+
+Create a section that:
+1. Lists all TODOs in a clear, organized way
+2. Groups related TODOs if any
+3. Provides context about what needs to be done
+4. Suggests priority based on the code context
+5. Includes the file location for reference
+
+Format the response in markdown with proper headings and code blocks.`;
+
+        const todos = await this.generateComment(prompt);
+        return {
+            todos,
+            todoCount: todoItems.length
+        };
+    }
 
     /**
      * Handle API errors by logging the error message and throwing the error.

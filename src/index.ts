@@ -66,6 +66,8 @@ async function main() {
                 configuration
             );
 
+            const { todoItems, envUsages } = await documentationGenerator.analyzeCodebase();
+
             // Generate JSDoc documentation first
             const { documentedItems, branchName } = await documentationGenerator.generate(
                 configuration.repository.pullNumber
@@ -75,7 +77,9 @@ async function main() {
                 // Then generate plugin documentation on the same branch
                 await pluginDocGenerator.generate(
                     documentedItems,
-                    branchName // Use the same branch as JSDoc changes
+                    branchName, // Use the same branch as JSDoc changes
+                    todoItems,
+                    envUsages
                 );
             }
 

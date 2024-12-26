@@ -1,4 +1,4 @@
-import { ASTQueueItem, PluginDocumentation } from './types/index.js';
+import { ASTQueueItem, PluginDocumentation, TodoItem, EnvUsage } from './types/index.js';
 import { AIService } from './AIService.js';
 import { GitManager } from './GitManager.js';
 import { Configuration } from './Configuration.js';
@@ -19,8 +19,15 @@ export class PluginDocumentationGenerator {
      * Generates comprehensive plugin documentation
      * @param {ASTQueueItem[]} existingDocs - Queue of documented items
      * @param {string} branchName - Current git branch name
+     * @param {TodoItem[]} todoItems - List of TODO items found in the codebase
+     * @param {EnvUsage[]} envUsages - List of environment variable usages
      */
-    public async generate(existingDocs: ASTQueueItem[], branchName?: string): Promise<void> {
+    public async generate(
+        existingDocs: ASTQueueItem[],
+        branchName?: string,
+        todoItems: TodoItem[] = [],
+        envUsages: EnvUsage[] = []
+    ): Promise<void> {
         // Read package.json
         const packageJsonPath = path.join(this.configuration.absolutePath, 'package.json');
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
@@ -35,7 +42,9 @@ export class PluginDocumentationGenerator {
         const documentation = await this.aiService.generatePluginDocumentation({
             existingDocs,
             packageJson,
-            readmeContent
+            readmeContent,
+            todoItems,
+            envUsages
         });
 
         // Generate and write markdown
@@ -53,7 +62,7 @@ export class PluginDocumentationGenerator {
         }
     }
 
-    private generateMarkdownContent(docs: PluginDocumentation): string {
+    private generateMarkdownContent(docs: PluginDocumentation & { todos: string }): string {
         return `# Plugin Documentation
 
 ## Overview and Purpose
@@ -73,6 +82,9 @@ ${docs.apiReference}
 
 ## Common Issues & Troubleshooting
 ${docs.troubleshooting}
+
+## TODO Items
+${docs.todos}
 `;
     }
 }
