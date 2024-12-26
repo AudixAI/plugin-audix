@@ -19,7 +19,7 @@ export class DocumentationGenerator {
     public existingJsDocQueue: ASTQueueItem[] = [];
     private hasChanges: boolean = false;
     private fileContents: Map<string, string> = new Map();
-    private branchName: string = '';
+    public branchName: string = '';
     private fileOffsets: Map<string, number> = new Map();
 
     /**
@@ -50,7 +50,7 @@ export class DocumentationGenerator {
      * @param pullNumber - Optional. The pull request number to generate JSDoc comments for.
      * @returns A promise that resolves once the JSDoc generation process is completed.
      */
-    public async generate(pullNumber?: number): Promise<void> {
+    public async generate(pullNumber?: number): Promise<{ documentedItems: ASTQueueItem[], branchName: string | undefined }> {
         let fileChanges: PrModeFileChange[] | FullModeFileChange[] = [];
         this.fileOffsets.clear();
 
@@ -115,6 +115,7 @@ export class DocumentationGenerator {
                 continue;
             }
 
+            // todo - I think this is a bug - not needed
             this.jsDocAnalyzer.analyze(ast);
 
             // Process each node in the file
@@ -137,6 +138,11 @@ export class DocumentationGenerator {
                     comment = await this.jsDocGenerator.generateComment(queueItem);
                 }
                 await this.updateFileWithJSDoc(queueItem.filePath, comment, queueItem.startLine);
+
+
+                queueItem.jsDoc = comment;
+                this.existingJsDocQueue.push(queueItem);
+
                 this.hasChanges = true;
             }
 
@@ -162,6 +168,10 @@ export class DocumentationGenerator {
                 });
             }
         }
+        return {
+            documentedItems: this.existingJsDocQueue,
+            branchName: this.branchName
+        };
     }
 
     /**

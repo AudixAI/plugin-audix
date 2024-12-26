@@ -27,3 +27,12 @@ export interface PrModeFileChange extends FullModeFileChange {
     changes: number;
     contents_url: string;
 }
+
+export interface PluginDocumentation {
+    overview: string;
+    installation: string;
+    configuration: string;
+    usage: string;
+    apiReference: string;
+    troubleshooting: string;
+}
